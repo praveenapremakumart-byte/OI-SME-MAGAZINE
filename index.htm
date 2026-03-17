@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SME Magazine NFT - Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #0a0a1a; color: white; min-height: 100vh; }
+        .container { max-width: 480px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; }
+        .logo { font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .magazine-card { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 25px; padding: 25px; margin: 20px 0; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .cover-image { width: 100%; height: 300px; background: linear-gradient(135deg, #2d3561 0%, #1a1f3a 100%); border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; margin-bottom: 20px; }
+        .cover-title { font-size: 48px; font-weight: bold; text-shadow: 0 0 30px rgba(102,126,234,0.5); }
+        .cover-subtitle { font-size: 24px; color: #667eea; margin-top: 10px; }
+        .nft-badge { position: absolute; top: 15px; right: 15px; background: #667eea; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .edition-badge { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 20px; font-size: 12px; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .stat-box { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .stat-label { font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+        .stat-value { font-size: 28px; font-weight: bold; color: #00ff88; }
+        .stat-value.white { color: white; }
+        .open-btn { width: 100%; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 15px; color: white; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .open-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(102,126,234,0.4); }
+        .toast { position: fixed; bottom: -200px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%); color: #0a0a1a; padding: 25px 40px; border-radius: 20px; transition: bottom 0.5s ease; z-index: 1000; text-align: center; min-width: 300px; }
+        .toast.show { bottom: 30px; }
+        .reader-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a1a; z-index: 100; overflow-y: auto; }
+        .reader-view.active { display: block; }
+        .reader-header { position: sticky; top: 0; background: rgba(10,10,26,0.95); padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .close-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+        .article-content { max-width: 680px; margin: 0 auto; padding: 40px 20px; line-height: 1.8; font-size: 18px; }
+        .article-content h1 { font-size: 42px; margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .article-content h2 { font-size: 28px; margin: 40px 0 20px; color: #667eea; }
+        .article-content p { margin-bottom: 20px; color: #ccc; }
+        .loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center; flex-direction: column; }
+        .loading.active { display: flex; }
+        .spinner { width: 60px; height: 60px; border: 4px solid rgba(102,126,234,0.3); border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">SME Magazine</div>
+            <div style="background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); padding: 8px 15px; border-radius: 20px; color: #00ff88; font-size: 14px; font-weight: bold;" id="ethPrice">$2,450.00</div>
+        </div>
+        
+        <div class="magazine-card">
+            <div class="cover-image">
+                <div class="edition-badge">Edition #001</div>
+                <div class="nft-badge">NFT #001</div>
+                <div class="cover-title">SME</div>
+                <div class="cover-subtitle">Q1 2026</div>
+            </div>
+            
+            <h2 style="margin-bottom: 10px;">Blockchain Revolution</h2>
+            <p style="color: #888; margin-bottom: 20px;">Tap to open and increase value</p>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-label">Current Value</div>
+                    <div class="stat-value" id="currentValue">0.502 ETH</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Times Opened</div>
+                    <div class="stat-value white" id="openCount">12</div>
+                </div>
+            </div>
+            
+            <div style="background: rgba(102,126,234,0.1); padding: 15px; border-radius: 10px; margin-top: 15px;">
+                <p style="color: #667eea; font-size: 14px;">📈 Next Open Bonus: +0.002 ETH</p>
+            </div>
+            
+            <button class="open-btn" id="openBtn" onclick="openMagazine()">Open Magazine</button>
+        </div>
+    </div>
+    
+    <div class="reader-view" id="readerView">
+        <div class="reader-header">
+            <button class="close-btn" onclick="closeReader()">✕</button>
+            <div style="background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3); padding: 10px 20px; border-radius: 20px; color: #00ff88; font-size: 14px;" id="valueIndicator">Value +0.000 ETH</div>
+            <button class="close-btn">⋮</button>
+        </div>
+        
+        <article class="article-content">
+            <h1>The Blockchain Revolution in Small Business</h1>
+            <p style="color: #667eea; font-size: 14px; margin-bottom: 30px;">By Alex Chen • Tech Editor • 8 min read</p>
+            
+            <p>Small and medium enterprises (SMEs) are discovering that blockchain technology isn't just for crypto giants—it's becoming the backbone of modern business transparency and value creation.</p>
+            
+            <h2>The Read-to-Earn Model</h2>
+            <p>Imagine a magazine that becomes more valuable every time you read it. Through smart contract technology, each interaction with your digital magazine NFT mints proof-of-engagement tokens.</p>
+            
+            <h2>How It Works</h2>
+            <ul style="margin: 20px 0; padding-left: 30px; color: #ccc;">
+                <li>Tracks every opening and reading session</li>
+                <li>Mints engagement tokens to your wallet</li>
+                <li>Increases resale value based on readership</li>
+            </ul>
+            
+            <p style="color: #667eea; font-size: 20px; margin-top: 40px;">Welcome to the future of publishing.</p>
+        </article>
+    </div>
+    
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p style="margin-top: 20px; color: #667eea;">Processing...</p>
+    </div>
+    
+    <div class="toast" id="toast">
+        <div style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">💎 Value Increased!</div>
+        <div style="font-size: 14px; margin-bottom: 5px;">+0.002 ETH added</div>
+        <div style="font-size: 32px; font-weight: bold;" id="toastValue">0.504 ETH</div>
+    </div>
+
+    <script>
+        let magazineValue = 0.502;
+        let openCount = 12;
+        let isReading = false;
+        
+        setInterval(() => {
+            const price = 2400 + Math.random() * 100;
+            document.getElementById('ethPrice').textContent = '$' + price.toFixed(2);
+        }, 5000);
+        
+        function openMagazine() {
+            const btn = document.getElementById('openBtn');
+            btn.disabled = true;
+            btn.textContent = 'Opening...';
+            document.getElementById('loading').classList.add('active');
+            
+            setTimeout(() => {
+                magazineValue += 0.002;
+                openCount++;
+                document.getElementById('currentValue').textContent = magazineValue.toFixed(3) + ' ETH';
+                document.getElementById('openCount').textContent = openCount;
+                document.getElementById('toastValue').textContent = magazineValue.toFixed(3) + ' ETH';
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('readerView').classList.add('active');
+                isReading = true;
+                
+                setTimeout(() => {
+                    document.getElementById('toast').classList.add('show');
+                    setTimeout(() => document.getElementById('toast').classList.remove('show'), 3000);
+                }, 500);
+                
+                let accumulated = 0;
+                const indicator = document.getElementById('valueIndicator');
+                const interval = setInterval(() => {
+                    if (!isReading) { clearInterval(interval); return; }
+                    accumulated += 0.0001;
+                    indicator.textContent = 'Value +' + accumulated.toFixed(4) + ' ETH';
+                }, 1000);
+                
+                btn.disabled = false;
+                btn.textContent = 'Open Magazine';
+            }, 1500);
+        }
+        
+        function closeReader() {
+            isReading = false;
+            document.getElementById('readerView').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
